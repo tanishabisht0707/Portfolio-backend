@@ -6,7 +6,7 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: "https://your-portfolio.netlify.app",
+  origin: "https://tanisha-bisht.netlify.app",
   credentials: true
 }));
 
