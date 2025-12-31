@@ -5,7 +5,10 @@ require("dotenv").config();
 
 const app = express();
 
-// 🔐 CORS CONFIG (IMPORTANT)
+// 🔑 VERY IMPORTANT FOR RENDER
+app.set("trust proxy", 1);
+
+// 🛡 CORS MUST BE FIRST
 app.use(cors({
   origin: "https://tanisha-bisht.netlify.app",
   methods: ["GET", "POST", "OPTIONS"],
@@ -13,7 +16,6 @@ app.use(cors({
   credentials: true
 }));
 
-// 🧠 Handle preflight requests
 app.options("*", cors());
 
 // 📦 Body parsing
@@ -49,16 +51,17 @@ app.post("/contact", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: email,
+      from: `"Portfolio Contact" <${process.env.EMAIL_USER}>`,
       to: process.env.EMAIL_USER,
+      replyTo: email,
       subject: `Portfolio Contact: ${name}`,
       text: `Name: ${name}\nEmail: ${email}\n\n${message}`
     });
 
-    res.status(200).json({ success: true, message: "Email sent successfully" });
+    return res.status(200).json({ success: true, message: "Email sent successfully" });
   } catch (error) {
-    console.error("Email error:", error);
-    res.status(500).json({ success: false, message: "Email failed" });
+    console.error("Email error:", error.message);
+    return res.status(500).json({ success: false, message: "Email service failed on server" });
   }
 });
 
