@@ -5,19 +5,24 @@ require('dotenv').config();
 
 const app = express();
 
+// CORS configuration
 app.use(cors({
   origin: "https://tanisha-bisht.netlify.app",
   credentials: true
 }));
 
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logging
+// Logging middleware
 app.use((req, res, next) => {
   console.log(`Request from origin: ${req.headers.origin} | Path: ${req.path}`);
   next();
+});
+
+// Health check route
+app.get("/", (req, res) => {
+  res.send("Portfolio backend is running 🚀");
 });
 
 // Contact route
@@ -33,7 +38,7 @@ app.post('/contact', async (req, res) => {
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Use Gmail App Password
+        pass: process.env.EMAIL_PASS, // Gmail App Password
       },
     });
 
@@ -41,15 +46,15 @@ app.post('/contact', async (req, res) => {
       from: email,
       to: process.env.EMAIL_USER,
       subject: `Message from portfolio: ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
+      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
     };
 
     await transporter.sendMail(mailOptions);
 
-    res.status(200).json({ message: 'Email sent successfully!' });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: 'Failed to send message', error: err });
+    res.status(200).json({ success: true, message: 'Email sent successfully!' });
+  } catch (error) {
+    console.error("Email error:", error);
+    res.status(500).json({ success: false, message: 'Failed to send message' });
   }
 });
 
