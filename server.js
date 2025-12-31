@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 });
 
 // Contact route
-app.post('/', async (req, res) => {
+app.post('/contact', async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
