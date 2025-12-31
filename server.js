@@ -1,65 +1,69 @@
-const express = require('express');
-const nodemailer = require('nodemailer');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const nodemailer = require("nodemailer");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
-// CORS configuration
+// 🔐 CORS CONFIG (IMPORTANT)
 app.use(cors({
   origin: "https://tanisha-bisht.netlify.app",
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"],
   credentials: true
 }));
 
+// 🧠 Handle preflight requests
+app.options("*", cors());
+
+// 📦 Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logging middleware
+// 📝 Logging
 app.use((req, res, next) => {
-  console.log(`Request from origin: ${req.headers.origin} | Path: ${req.path}`);
+  console.log(`Request from ${req.headers.origin} → ${req.method} ${req.path}`);
   next();
 });
 
-// Health check route
+// 🟢 Health check
 app.get("/", (req, res) => {
   res.send("Portfolio backend is running 🚀");
 });
 
-// Contact route
-app.post('/contact', async (req, res) => {
+// 📩 Contact API
+app.post("/contact", async (req, res) => {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
-    return res.status(400).json({ message: 'All fields are required!' });
+    return res.status(400).json({ message: "All fields are required" });
   }
 
   try {
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS, // Gmail App Password
-      },
+        pass: process.env.EMAIL_PASS
+      }
     });
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: email,
       to: process.env.EMAIL_USER,
-      subject: `Message from portfolio: ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-    };
+      subject: `Portfolio Contact: ${name}`,
+      text: `Name: ${name}\nEmail: ${email}\n\n${message}`
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.status(200).json({ success: true, message: 'Email sent successfully!' });
+    res.status(200).json({ success: true, message: "Email sent successfully" });
   } catch (error) {
     console.error("Email error:", error);
-    res.status(500).json({ success: false, message: 'Failed to send message' });
+    res.status(500).json({ success: false, message: "Email failed" });
   }
 });
 
-// Start server
+// 🚀 Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("Server running on port", PORT);
 });
